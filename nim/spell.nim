@@ -1,3 +1,5 @@
+# straightforward port, probably not idiomatic or as concise as possible
+
 import re, tables, os, sequtils, sets
 
 var alph = "abcdefghijklmnopqrstuvwxyz"
