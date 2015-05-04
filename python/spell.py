@@ -34,7 +34,5 @@ def correct(word):
     candidates = known([word]) or known(edits1(word)) or known_edits2(word) or [word]
     return max(candidates, key=NWORDS.get)
 
-# print correct(raw_input('Enter a word: '))
-
 for arg in sys.argv[1:]:
   print correct(arg)
