@@ -1,4 +1,4 @@
 Instructions
 ------------
 
-`make`
+`make; ./spell`
