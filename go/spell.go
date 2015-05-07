@@ -43,7 +43,7 @@ func train(words []string) map[string]int {
 func edits1(word string) []string {
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
 	var splits []pair
-	for i := 0; i < len(word) + 1; i++ {
+	for i := 0; i < len(word)+1; i++ {
 		new_pair := pair{f: word[:i], s: word[i:]}
 		splits = append(splits, new_pair)
 	}
@@ -52,17 +52,17 @@ func edits1(word string) []string {
 		a := p.f
 		b := p.s
 		if len(b) > 0 {
-			deletes = append(deletes, a + b[1:])
-		for _, c := range alphabet {
-				replaces = append(replaces, a + string(c) + b[1:])
+			deletes = append(deletes, a+b[1:])
+			for _, c := range alphabet {
+				replaces = append(replaces, a+string(c)+b[1:])
 			}
 		}
 
 		if len(b) > 1 {
-			transposes = append(transposes, a + string(b[1]) + string(b[0]) + b[2:])
+			transposes = append(transposes, a+string(b[1])+string(b[0])+b[2:])
 		}
 		for _, c := range alphabet {
-			inserts = append(inserts, a + string(c) + b)
+			inserts = append(inserts, a+string(c)+b)
 		}
 	}
 	var result []string
