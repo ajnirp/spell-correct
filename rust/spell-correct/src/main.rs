@@ -100,7 +100,7 @@ fn known_edits2(word: Vec<u8>, model: &HashMap<&[u8], i64>) -> Vec<Vec<u8>> {
     for edit_vec1 in e1.iter() {
         let e2 = edits1(edit_vec1.to_owned());
         for edit_vec2 in e2.iter() {
-            if model.contains_key(edit_vec2) {
+            if model.contains_key(&edit_vec2[..]) {
                 result.push(edit_vec2.to_owned());
             }
         }
