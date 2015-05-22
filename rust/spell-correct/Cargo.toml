@@ -1,0 +1,7 @@
+[package]
+name = "spell-correct"
+version = "0.1.0"
+authors = ["Rohan Prinja <rohan.prinja@gmail.com>"]
+
+[dependencies]
+regex = "0.1.30"
