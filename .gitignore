@@ -2,3 +2,4 @@
 nimcache/
 spell
 target/
+Cargo.lock

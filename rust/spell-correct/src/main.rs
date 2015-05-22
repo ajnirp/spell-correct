@@ -5,17 +5,18 @@ use std::io::prelude::*;
 use std::path::Path;
 use regex::Regex;
 use std::collections::HashMap;
+use std::env;
 
-fn train<'a, 'b>(words: &'a Vec<&'b [u8]>) -> HashMap<&'b [u8], i64> {
-    let mut model = HashMap::new();
+fn train<'a, 'b>(words: &Vec<Vec<u8>>) -> HashMap<Vec<u8>, i64> {
+    let mut model = HashMap::<Vec<u8>, i64>::new();
     for word in words.iter() {
-        let count = model.entry(*word).or_insert(1);
+        let count = model.entry(word.to_owned()).or_insert(1);
         *count += 1;
     }
     return model;
 }
 
-fn edits1(word: Vec<u8>) -> Vec<Vec<u8>> {
+fn edits1(word: &Vec<u8>) -> Vec<Vec<u8>> {
     let alphabet = "abcdefghijklmnopqrstuvwxyz";
     let mut result = Vec::<Vec<u8>>::new();
 
@@ -94,33 +95,57 @@ fn remove_duplicates(words: &mut Vec<Vec<u8>>) {
     words.dedup();
 }
 
-fn known_edits2(word: Vec<u8>, model: &HashMap<&[u8], i64>) -> Vec<Vec<u8>> {
+fn retain_known(words: &mut Vec<Vec<u8>>, model: &HashMap<Vec<u8>, i64>) {
+    words.retain(|word| model.contains_key(&word[..]));
+}
+
+fn known_edits2(word: &Vec<u8>, model: &HashMap<Vec<u8>, i64>) -> Vec<Vec<u8>> {
     let mut result = Vec::<Vec<u8>>::new();
     let e1 = edits1(word);
     for edit_vec1 in e1.iter() {
-        let e2 = edits1(edit_vec1.to_owned());
+        let e2 = edits1(edit_vec1);
         for edit_vec2 in e2.iter() {
-            if model.contains_key(edit_vec2) {
+            if model.contains_key(&edit_vec2[..]) {
                 result.push(edit_vec2.to_owned());
             }
+        }
+    }
+    remove_duplicates(&mut result);
+    return result;
+}
+
+fn best_candidate(candidates: &Vec<Vec<u8>>, model: &HashMap<Vec<u8>, i64>) -> Vec<u8> {
+    let mut count = -1i64;
+    let mut result = Vec::<u8>::new();
+    for cand in candidates.iter() {
+        let cand_count = model.get(cand).or(Some(&1i64)).unwrap().to_owned();
+        if cand_count > count {
+            count = cand_count;
+            result = cand.to_owned();
         }
     }
     return result;
 }
 
-// fn correct(word: &str) -> String {
-//     "temp".to_string()
-// }
+fn correct(word: &str, model: &HashMap<Vec<u8>, i64>) -> Vec<u8> {
+    let w: Vec<u8> = word.as_bytes().to_owned();
+    if model.contains_key(&w[..]) {
+        return w;
+    }
+    let mut candidates = edits1(&w);
+    retain_known(&mut candidates, &model);
+    if candidates.len() > 0 {
+        return best_candidate(&candidates, &model);
+    }
+    candidates = known_edits2(&w, &model);
+    if candidates.len() > 0 {
+        return best_candidate(&candidates, &model);
+    }
+    return w;
+}
 
 fn print_bytevector(bv: &Vec<u8>) {
     for by in bv.iter() { print!("{}", by.to_owned() as char); }
-    println!("");
-}
-
-fn to_bytevector(word: &str) -> Vec<u8> {
-    let mut result = vec![];
-    for c in word.chars() { result.push(c as u8); }
-    return result;
 }
 
 fn main() {
@@ -130,19 +155,25 @@ fn main() {
     file.read_to_string(&mut contents).unwrap();
     // println!("done reading file");
 
-    // let re = Regex::new(r"([a-z]+)").unwrap();
-    // let mut words = Vec::new();
-    // for capture in re.captures_iter(&contents) {
-    //     let word = capture.at(1).unwrap();
-    //     words.push(word);
-    // }
+    // as of 22-5-2015, regex implementation takes
+    // nearly a minute, needs optimising
+    let re = Regex::new(r"([a-z]+)").unwrap();
+    let mut words = Vec::<Vec<u8>>::new();
+    for capture in re.captures_iter(&contents) {
+        let word = capture.at(1).unwrap();
+        words.push(word.as_bytes().to_owned());
+    }
     // println!("done finding words");
 
-    // let model = train(&words);
+    let model = train(&words);
     // println!("done training words");
 
-    let edits = edits1(to_bytevector("aa"));
-    for s in edits.iter() {
-        print_bytevector(s);
+    for (itr, arg) in env::args().enumerate() {
+        // skip the first argument
+        if itr > 0 {
+            let correction = correct(&arg, &model);
+            print_bytevector(&correction);
+            print!(" ");
+        }
     }
 }
