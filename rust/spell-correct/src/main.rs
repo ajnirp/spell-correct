@@ -7,7 +7,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::env;
 
-fn train<'a, 'b>(words: &Vec<Vec<u8>>) -> HashMap<Vec<u8>, i64> {
+fn train(words: &Vec<Vec<u8>>) -> HashMap<Vec<u8>, i64> {
     let mut model = HashMap::<Vec<u8>, i64>::new();
     for word in words.iter() {
         let count = model.entry(word.to_owned()).or_insert(1);
@@ -155,8 +155,8 @@ fn main() {
     file.read_to_string(&mut contents).unwrap();
     // println!("done reading file");
 
-    // as of 22-5-2015, regex implementation takes
-    // nearly a minute, needs optimising
+    // as of 22-5-2015, in debug binary, the regex bit
+    // takes nearly a minute to run, needs optimising?
     let re = Regex::new(r"([a-z]+)").unwrap();
     let mut words = Vec::<Vec<u8>>::new();
     for capture in re.captures_iter(&contents) {
